@@ -1,0 +1,38 @@
+﻿@page "/"
+@using Assignment.Data;
+
+@inject ApplicationDbContext dbContext
+
+<h3>Students Enrolled in Classes Taught by 'Computer Science' Faculty</h3>
+
+@if (studentsInComputerScienceList != null && studentsInComputerScienceList.Any())
+{
+    <ul>
+        @foreach (var studentName in studentsInComputerScienceList)
+        {
+            <li>@studentName</li>
+        }
+    </ul>
+}
+else
+{
+    <p>No students found who are enrolled in classes taught by 'Computer Science' faculty.</p>
+}
+
+@code {
+    private List<string> studentsInComputerScienceList;
+
+    protected override void OnInitialized()
+    {
+        // LINQ query to get the names of students enrolled in classes taught by 'Computer Science' faculty
+        studentsInComputerScienceList = dbContext.Students
+            .Where(s => dbContext.Enrollments
+                .Any(e => dbContext.Classes
+                    .Any(c => dbContext.Faculties
+                        .Any(f => f.Fid == c.Fid && f.Deptid == "Computer Science") && e.Cid == c.Cid && e.Sid == s.Sid)
+                )
+            )
+            .Select(s => s.Sname)
+            .ToList();
+    }
+}

@@ -1,0 +1,54 @@
+﻿@page "/"
+@using Assignment.Data;
+
+@inject ApplicationDbContext dbContext
+
+<h3>Classes with More Than 100 Students</h3>
+
+@if (classInfoList != null && classInfoList.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Class Name</th>
+                <th>Room Number</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var classInfo in classInfoList)
+            {
+                <tr>
+                    <td>@classInfo.ClassName</td>
+                    <td>@classInfo.RoomNumber</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No classes with more than 100 students found.</p>
+}
+
+@code {
+    private List<ClassInfo> classInfoList;
+
+    protected override void OnInitialized()
+    {
+        // LINQ query to get class names and room numbers for classes with more than 100 students
+        classInfoList = dbContext.Classes
+            .Where(c => c.Enrollments.Count() > 100)
+            .Select(c => new ClassInfo
+                {
+                    ClassName = c.Name,
+                    RoomNumber = c.RoomNumber
+                })
+            .ToList();
+    }
+
+    private class ClassInfo
+    {
+        public string ClassName { get; set; }
+        public string RoomNumber { get; set; }
+    }
+}

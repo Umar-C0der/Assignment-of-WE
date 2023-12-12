@@ -1,0 +1,54 @@
+﻿@page "/"
+@using Assignment.Data;
+
+@inject ApplicationDbContext dbContext
+
+<h3>Students Enrolled in More Than Two Classes</h3>
+
+@if (studentEnrollmentList != null && studentEnrollmentList.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Number of Classes Enrolled</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var enrollmentInfo in studentEnrollmentList)
+            {
+                <tr>
+                    <td>@enrollmentInfo.StudentName</td>
+                    <td>@enrollmentInfo.NumberOfClassesEnrolled</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No students found who are enrolled in more than two classes.</p>
+}
+
+@code {
+    private List<EnrollmentInfo> studentEnrollmentList;
+
+    protected override void OnInitialized()
+    {
+        // LINQ query to get student names and the number of classes they are enrolled in (more than two)
+        studentEnrollmentList = dbContext.Students
+            .Where(s => dbContext.Enrollments.Count(e => e.Sid == s.Sid) > 2)
+            .Select(s => new EnrollmentInfo
+                {
+                    StudentName = s.Sname,
+                    NumberOfClassesEnrolled = dbContext.Enrollments.Count(e => e.Sid == s.Sid)
+                })
+            .ToList();
+    }
+
+    private class EnrollmentInfo
+    {
+        public string StudentName { get; set; }
+        public int NumberOfClassesEnrolled { get; set; }
+    }
+}

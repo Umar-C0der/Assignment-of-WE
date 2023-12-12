@@ -1,0 +1,54 @@
+﻿@page "/"
+@using Assignment.Data;
+
+@inject ApplicationDbContext dbContext
+
+<h3>Faculty and Total Number of Classes They Are Teaching</h3>
+
+@if (facultyClassCountList != null && facultyClassCountList.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Faculty Name</th>
+                <th>Total Number of Classes</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var facultyInfo in facultyClassCountList)
+            {
+                <tr>
+                    <td>@facultyInfo.FacultyName</td>
+                    <td>@facultyInfo.TotalNumberOfClasses</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No faculty found.</p>
+}
+
+@code {
+    private List<FacultyInfo> facultyClassCountList;
+
+    protected override void OnInitialized()
+    {
+        // LINQ query to get faculty names and the total number of classes they are teaching
+        facultyClassCountList = dbContext.Faculties
+            .Select(f => new FacultyInfo
+                {
+                    FacultyName = f.Fname,
+                    TotalNumberOfClasses = dbContext.Classes.Count(c => c.Fid == f.Fid)
+                })
+            .OrderByDescending(f => f.TotalNumberOfClasses)
+            .ToList();
+    }
+
+    private class FacultyInfo
+    {
+        public string FacultyName { get; set; }
+        public int TotalNumberOfClasses { get; set; }
+    }
+}

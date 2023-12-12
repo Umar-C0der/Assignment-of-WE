@@ -1,0 +1,62 @@
+﻿@page "/"
+@using Assignment.Data;
+
+@inject ApplicationDbContext dbContext
+
+<h3>Students Taking No Classes with Teachers in Department 22</h3>
+
+@if (studentInfoList != null && studentInfoList.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Major</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var studentInfo in studentInfoList)
+            {
+                <tr>
+                    <td>@studentInfo.StudentId</td>
+                    <td>@studentInfo.Major</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No students found who take no classes with teachers in department 22.</p>
+}
+
+@code {
+    private List<StudentInfo> studentInfoList;
+
+    protected override void OnInitialized()
+    {
+        // LINQ query to get student IDs and majors for students who take no classes with teachers in department 22
+        studentInfoList = dbContext.Students
+            .Where(s => !dbContext.Enrollments
+                .Any(e => e.Sid == s.Sid &&
+                          dbContext.Classes
+                              .Any(c => c.Cid == e.Cid &&
+                                        dbContext.Faculties
+                                            .Any(f => f.Fid == c.Fid && f.Deptid == "22")
+                                     )
+                     )
+            )
+            .Select(s => new StudentInfo
+                {
+                    StudentId = s.Sid,
+                    Major = s.Major
+                })
+            .ToList();
+    }
+
+    private class StudentInfo
+    {
+        public int StudentId { get; set; }
+        public string Major { get; set; }
+    }
+}
